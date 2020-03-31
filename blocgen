@@ -3,9 +3,6 @@
 import os
 import sys
 from enum import Enum
-# generate = False
-# variable = False
-# _help = False
 
 class Functionalities(Enum):
 	GENERATE = 1
@@ -36,18 +33,21 @@ class CheckOptions():
 	def __init__(self, params):
 		self.params=params
 		
-	def helpsPrint(self):
+	def helperPrint(self):
 		print(""" 
-			g or generate 
-				comand that gives the intention to generate something
-			r or remove
-				comand that gives the intention to remove something
-			v or variable
-				the content that will be removed is an variable
-			b or bloc
-				the content that will be an bloc file
-			-h or --help 
-				Shows this dictionary of commands
+	g or generate 
+		comand that gives the intention to generate something
+	r or remove
+		comand that gives the intention to remove something
+	v or variable
+		the content that will be removed will be a variable
+	b or bloc
+		the content that will be removed will be a bloc file
+	-h or --help 
+		Shows this dictionary of commands
+	example:
+		blocgen [g|r] [v|b] [variable or bloc] -p [path or file]
+		blocgen g v yourVariable -p ~/yourProject/yourFile
 		""")
 
 	def getNextToken(self):
@@ -75,7 +75,7 @@ class CheckOptions():
 		else:
 			return TK(Functionalities.VAR, lex)
 
-	def getVariables(self):
+	def createVariable(self):
 		arrOfVar=[]
 		self.token = self.getNextToken()
 		while(self.token._type != Functionalities.PATH):
@@ -90,7 +90,7 @@ class CheckOptions():
 				path = self.token._content
 				return Comands.CREATE_VARIABLE ,arrOfVar,path
 			else:
-				print("need to pass path -p")
+				print("need to pass path after parameter '-p'")
 				return None,None,None
 
 	def getComand(self):
@@ -98,21 +98,29 @@ class CheckOptions():
 		if(self.token._type == Functionalities.GENERATE):
 			self.token = self.getNextToken()
 			if(self.token._type == Functionalities.BLOC):
-				return Comands.CREATE_BLOC, None, None
+				print("comming soon")
+				return None, None, None
 			elif(self.token._type == Functionalities.VARIABLE):
-				return self.getVariables()
+				return self.createVariable()
 			elif(self.token._type == Functionalities.HELPER):
-				helpsPrint()
-				return None
+				self.helperPrint()
+				return None, None, None
 			else:
-				print(" unexpected param %s " % self.params[self.lexCounter-1])
-				return None
-		elif(self.token._type == Functionalities.HELPER):
-			helpsPrint()
-			return None
+				print(" unexpected parameter %s " % self.params[self.lexCounter-1])
+				self.helperPrint()
+				return None, None, None
+		elif(self.token._type == Functionalities.REMOVE):
+			self.helperPrint()
+			print("	comming soon")
+			return None, None, None
+
+		if(self.token._type == Functionalities.HELPER):
+			self.helperPrint()
+			return None, None, None
 		else:
-			print(" unexpected param %s " % self.params[self.lexCounter])
-			return None
+			print(" unexpected param %s " % self.token._content)
+			self.helperPrint()
+			return None, None, None
 
 class Worker():
 	comand = ""
@@ -124,37 +132,32 @@ class Worker():
 		self.pathOrFile = pathOrFile
 
 	def doComand(self):
+		if(self.comand == None):
+			return
 		if(self.comand == Comands.CREATE_BLOC):
 			self.createBloc()
-		
 		elif(self.comand == Comands.CREATE_VARIABLE):
 			self.createVariable()
-		
 		else:
-			print("invalid command")
+			print("	invalid command")
 	
 	def createBloc(self):
 		if os.path.isdir(self.pathOrFile):
-			print("here will call the function to create a bloc")
-			# f = open(os.path.basename(self.pathOrFile)+"/demofile3.txt", "w")
-			# f.write("Woops! I have deleted the content!")
-			# f.close()
+			print("here we will call the function to create a block")
 		else:
-			print("the path passed is not a directory")
+			print("the past path is not a directory")
 
 	def createVariable(self):
 		_file = self.pathOrFile
 		text2write= self.openFile(_file)
-		# _variables = self.variables
-		# _file = self.pathOrFile
 
 		if os.path.isfile(_file):
 			f = open(_file, "w")
 			f.write(text2write)
 			f.close()
 			print("created!")
-		# else:
-		# 	print("the path passed is not a file")
+		else:
+			print("file not found in the path it received")
 
 
 
@@ -176,19 +179,19 @@ class Worker():
 							insertingVariable = False
 							insertingController = True
 					if(insertingController):
-						text2save += "  BehaviorSubject %sController = new BehaviorSubject.seeded("");\n" % (variable_)
+						text2save += "  BehaviorSubject %sController = new BehaviorSubject.seeded(null);\n" % (variable_)
 						insertingController = False
 						insertingObservable = True
 					if(insertingObservable):
 						if(("BehaviorSubject" not in line) and ("Observable" not in line)):
-							text2save += "  Observable get %sObservable => %sCotroller.stream;\n" % (variable_,variable_)
+							text2save += "  Observable get %sObservable => %sController.stream;\n" % (variable_,variable_)
 							insertingObservable = False
 							insertingFunction = True
 					if(insertingFunction):
 						if(("BehaviorSubject" not in line) and ("Observable" not in line)):
 							text2save += "  void change%s(%s){\n" % (variable_.capitalize(),variable_)
 							text2save += "    _%s = %s;\n" 		  % (variable_,variable_)
-							text2save += "	  %sController.sink.add(_%s);\n" % (variable_.capitalize(),variable_)
+							text2save += "	  %sController.sink.add(_%s);\n" % (variable_,variable_)
 							text2save += "  }\n"
 							insertingFunction = False
 							insertingDispose = True
@@ -206,25 +209,7 @@ class Worker():
 def main():
 	args = sys.argv[1:]
 	comand,variables,pathOrFile = CheckOptions(args).getComand()
-	# print([comand,variables,path])
 	Worker(comand,variables,pathOrFile).doComand()
-	# print command line arguments
-	# for arg in sys.argv[1:]:
-		# checkOptions(sys.argv[1:])
-		# print (arg)
-		# if(arg == "-h" or arg == "--help"):
-		# 	helpsPrint()
-		# if os.path.isfile(arg):
-		# if os.path.isdir(arg):
-		# if os.path.exists(arg):
-			# print (os.path.basename(arg))
-			# openFile(os.path.basename(arg))
-		# f = open(os.path.basename(arg)+"/demofile3.txt", "w")
-		# f.write("Woops! I have deleted the content!")
-		# f.close()
-
-		# if(arg == "g" or arg == "generate")
-		# if(arg == "v" or arg == "variable")
 
 if __name__ == "__main__":
 	main()
