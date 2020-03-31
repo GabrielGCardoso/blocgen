@@ -46,7 +46,7 @@ class CheckOptions():
 	-h or --help 
 		Shows this dictionary of commands
 	example:
-		blocgen [g|r] [v|b] [variable or bloc] -p [path or file]
+		blocgen (g|r) (v|b) [yourVariable] -p [path or file]
 		blocgen g v yourVariable -p ~/yourProject/yourFile
 		""")
 
@@ -200,8 +200,7 @@ class Worker():
 						insertingDispose = False
 					text2save += line
 			return text2save
-				# print(f.readlines())
-				# Do something with the file
+
 		except IOError:
 			print("File not accessible")
 
