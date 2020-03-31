@@ -169,27 +169,41 @@ class Worker():
 		insertingFunction=False
 		insertingDispose=False
 		variable_ = self.variables[0]
+		varType = None
+		
+		varSplited = variable_.split(":")
+		if( len(varSplited) >= 2 ):
+			variable_, varType = varSplited
+		else:
+			variable_ = varSplited[0]
 
 		try:
 			with open(filePath) as f:
 				for line in f.readlines():
 					if("BehaviorSubject" in line or "override" in line):
 						if(insertingVariable):
-							text2save += "  var _%s; \n" % (variable_)
+							text2save += "  "
+							text2save += "var" if (varType == None) else varType
+							text2save += " _%s; \n" % (variable_)
 							insertingVariable = False
 							insertingController = True
 					if(insertingController):
-						text2save += "  BehaviorSubject %sController = new BehaviorSubject.seeded(null);\n" % (variable_)
+						text2save += "  BehaviorSubject"
+						text2save += "" if (varType == None) else ("<%s>") % varType
+						text2save += " %sController = new BehaviorSubject.seeded(null);\n" % (variable_)
 						insertingController = False
 						insertingObservable = True
 					if(insertingObservable):
 						if(("BehaviorSubject" not in line) and ("Observable" not in line)):
-							text2save += "  Observable get %sObservable => %sController.stream;\n" % (variable_,variable_)
+							text2save += "  Observable"
+							text2save += "" if (varType == None) else ("<%s>") % varType
+							text2save += " get %sObservable => %sController.stream;\n" % (variable_,variable_)
 							insertingObservable = False
 							insertingFunction = True
 					if(insertingFunction):
 						if(("BehaviorSubject" not in line) and ("Observable" not in line)):
-							text2save += "  void change%s(%s){\n" % (variable_.capitalize(),variable_)
+							type_var = "" if (varType == None) else ("%s ") % varType
+							text2save += "  void change%s(%s%s){\n" % (variable_.capitalize(),type_var,variable_)
 							text2save += "    _%s = %s;\n" 		  % (variable_,variable_)
 							text2save += "	  %sController.sink.add(_%s);\n" % (variable_,variable_)
 							text2save += "  }\n"
