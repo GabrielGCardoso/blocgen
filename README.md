@@ -11,7 +11,7 @@ you can download the source code file and place it in "/usr/bin" folder to call 
 ***like this*** :
 
 ```script
-$ wget https://gitlab.com/GabrielGCardoso/blocgen/-/raw/master/blocgen
+$ wget https://raw.githubusercontent.com/GabrielGCardoso/blocgen/master/blocgen
 $ sudo chmod +x blocgen
 $ sudo mv blocgen /usr/bin
 ```
