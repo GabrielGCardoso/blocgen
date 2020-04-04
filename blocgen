@@ -5,225 +5,224 @@ import sys
 from enum import Enum
 
 class Functionalities(Enum):
-	GENERATE = 1
-	REMOVE = 2
-	BLOC = 3
-	VARIABLE = 4
-	HELPER = 5
-	VAR = 6
-	PATH = 7
+    GENERATE = 1
+    REMOVE = 2
+    BLOC = 3
+    VARIABLE = 4
+    HELPER = 5
+    VAR= 6
+    PATH = 7
 
 class Comands(Enum):
-	CREATE_BLOC = 1
-	CREATE_VARIABLE =2
+    CREATE_BLOC = 1
+    CREATE_VARIABLE =2
 
 class TK():
-	_type = ""
-	_content = ""
-
-	def __init__(self, _type, _content):
-		self._type = _type
-		self._content = _content
+    _type = ""
+    _content = ""
+    def __init__(self, _type, _content):
+        self._type = _type
+        self._content = _content
 
 class CheckOptions():
-	params = ""
-	lexCounter = 0
-	token = None
-	
-	def __init__(self, params):
-		self.params=params
-		
-	def helperPrint(self):
-		print(""" 
-	g or generate 
-		comand that gives the intention to generate something
-	r or remove
-		comand that gives the intention to remove something
-	v or variable
-		the content that will be removed will be a variable
-	b or bloc
-		the content that will be removed will be a bloc file
-	-h or --help 
-		Shows this dictionary of commands
-	example:
-		blocgen (g|r) (v|b) [yourVariable] -p [path or file]
-		blocgen g v yourVariable -p ~/yourProject/yourFile
-		""")
+    params = ""
+    lexCounter = 0
+    token = None
+    
+    def __init__(self, params):
+        self.params=params
+            
+    def helperPrint(self):
+        print(""" 
+    g or generate 
+            comand that gives the intention to generate something
+    r or remove
+            comand that gives the intention to remove something
+    v or variable
+            the content that will be removed will be a variable
+    b or bloc
+            the content that will be removed will be a bloc file
+    -h or --help 
+            Shows this dictionary of commands
+    example:
+            blocgen (g|r) (v|b) [yourVariable] -p [path or file]
+            blocgen g v yourVariable -p ~/yourProject/yourFile
+        """)
 
-	def getNextToken(self):
-		if( self.lexCounter >= len(self.params)):
-			return None
-		else:
-			self.token = self.lexType(self.params[self.lexCounter])
-			self.lexCounter +=1
-			return self.token
+    def getNextToken(self):
+        if( self.lexCounter >= len(self.params)):
+                return None
+        else:
+            self.token = self.lexType(self.params[self.lexCounter])
+            self.lexCounter +=1
+            return self.token
 
 
-	def lexType(self,lex):
-		if(lex == "g" or lex== "generate"):
-			return TK(Functionalities.GENERATE, lex)
-		elif(lex == "r" or lex== "remove"):
-			return TK(Functionalities.REMOVE, lex)
-		elif(lex == "b" or lex== "bloc"):
-			return TK(Functionalities.BLOC, lex)
-		elif(lex == "v" or lex== "variable"):
-			return TK(Functionalities.VARIABLE, lex)
-		elif(lex == "-p" or lex== "--path"):
-			return TK(Functionalities.PATH, lex)
-		elif(lex == "-h" or lex== "--help"):
-			return TK(Functionalities.HELPER, lex)
-		else:
-			return TK(Functionalities.VAR, lex)
+    def lexType(self,lex):
+        if(lex == "g" or lex== "generate"):
+            return TK(Functionalities.GENERATE, lex)
+        elif(lex == "r" or lex== "remove"):
+            return TK(Functionalities.REMOVE, lex)
+        elif(lex == "b" or lex== "bloc"):
+            return TK(Functionalities.BLOC, lex)
+        elif(lex == "v" or lex== "variable"):
+            return TK(Functionalities.VARIABLE, lex)
+        elif(lex == "-p" or lex== "--path"):
+            return TK(Functionalities.PATH, lex)
+        elif(lex == "-h" or lex== "--help"):
+            return TK(Functionalities.HELPER, lex)
+        else:
+            return TK(Functionalities.VAR, lex)
 
-	def createVariable(self):
-		arrOfVar=[]
-		self.token = self.getNextToken()
-		while(self.token._type != Functionalities.PATH):
-			arrOfVar.append(self.token._content)
-			self.token = self.getNextToken()
-		if(arrOfVar == []):
-			print("Expected at least one variable")
-			return None,None,None
-		elif(self.token._type == Functionalities.PATH):
-			self.token = self.getNextToken()
-			if(self.token._type == Functionalities.VAR):
-				path = self.token._content
-				return Comands.CREATE_VARIABLE ,arrOfVar,path
-			else:
-				print("need to pass path after parameter '-p'")
-				return None,None,None
+    def createVariable(self):
+        arrOfVar=[]
+        self.token = self.getNextToken()
+        while(self.token._type != Functionalities.PATH):
+            arrOfVar.append(self.token._content)
+            self.token = self.getNextToken()
+        if(arrOfVar == []):
+            print("Expected at least one variable")
+            return None,None,None
+        elif(self.token._type == Functionalities.PATH):
+            self.token = self.getNextToken()
+            if(self.token._type == Functionalities.VAR):
+                path = self.token._content
+                return Comands.CREATE_VARIABLE ,arrOfVar,path
+        else:
+            print("need to pass path after parameter '-p'")
+            return None,None,None
 
-	def getComand(self):
-		self.token = self.getNextToken()
-		if(self.token._type == Functionalities.GENERATE):
-			self.token = self.getNextToken()
-			if(self.token._type == Functionalities.BLOC):
-				print("comming soon")
-				return None, None, None
-			elif(self.token._type == Functionalities.VARIABLE):
-				return self.createVariable()
-			elif(self.token._type == Functionalities.HELPER):
-				self.helperPrint()
-				return None, None, None
-			else:
-				print(" unexpected parameter %s " % self.params[self.lexCounter-1])
-				self.helperPrint()
-				return None, None, None
-		elif(self.token._type == Functionalities.REMOVE):
-			self.helperPrint()
-			print("	comming soon")
-			return None, None, None
+    def getComand(self):
+        self.token = self.getNextToken()
+        if(self.token._type == Functionalities.GENERATE):
+                self.token = self.getNextToken()
+                if(self.token._type == Functionalities.BLOC):
+                    print("comming soon")
+                    return None, None, None
+                elif(self.token._type == Functionalities.VARIABLE):
+                    return self.createVariable()
+                elif(self.token._type == Functionalities.HELPER):
+                    self.helperPrint()
+                    return None, None, None
+                else:
+                    print(" unexpected parameter %s " % self.params[self.lexCounter-1])
+                    self.helperPrint()
+                    return None, None, None
+        elif(self.token._type == Functionalities.REMOVE):
+            self.helperPrint()
+            print("	comming soon")
+            return None, None, None
 
-		if(self.token._type == Functionalities.HELPER):
-			self.helperPrint()
-			return None, None, None
-		else:
-			print(" unexpected param %s " % self.token._content)
-			self.helperPrint()
-			return None, None, None
+        if(self.token._type == Functionalities.HELPER):
+            self.helperPrint()
+            return None, None, None
+        else:
+            print(" unexpected param %s " % self.token._content)
+            self.helperPrint()
+            return None, None, None
 
 class Worker():
-	comand = ""
-	variables = ""
-	pathOrFile = ""
-	def __init__(self, comand, variables, pathOrFile):
-		self.comand = comand
-		self.variables = variables
-		self.pathOrFile = pathOrFile
+    comand = ""
+    variables = ""
+    pathOrFile = ""
+    def __init__(self, comand, variables, pathOrFile):
+        self.comand = comand
+        self.variables = variables
+        self.pathOrFile = pathOrFile
 
-	def doComand(self):
-		if(self.comand == None):
-			return
-		if(self.comand == Comands.CREATE_BLOC):
-			self.createBloc()
-		elif(self.comand == Comands.CREATE_VARIABLE):
-			self.createVariable()
-		else:
-			print("	invalid command")
-	
-	def createBloc(self):
-		if os.path.isdir(self.pathOrFile):
-			print("here we will call the function to create a block")
-		else:
-			print("the past path is not a directory")
+    def doComand(self):
+        if(self.comand == None):
+            return
+        if(self.comand == Comands.CREATE_BLOC):
+            self.createBloc()
+        elif(self.comand == Comands.CREATE_VARIABLE):
+            self.createVariable()
+        else:
+            print("	invalid command")
+    
+    def createBloc(self):
+        if os.path.isdir(self.pathOrFile):
+            print("here we will call the function to create a block")
+        else:
+            print("the past path is not a directory")
 
-	def createVariable(self):
-		_file = self.pathOrFile
-		text2write= self.openFile(_file)
+    def createVariable(self):
+        _file = self.pathOrFile
+        text2write= self.openFile(_file)
 
-		if os.path.isfile(_file):
-			f = open(_file, "w")
-			f.write(text2write)
-			f.close()
-			print("created!")
-		else:
-			print("file not found in the path it received")
+        if os.path.isfile(_file):
+            f = open(_file, "w")
+            f.write(text2write)
+            f.close()
+            print("created!")
+        else:
+            print("file not found in the path it received")
 
 
 
-	def openFile(self, filePath):
-		text2save = ""
-		insertingVariable=True
-		insertingController=False
-		insertingObservable=False
-		insertingFunction=False
-		insertingDispose=False
-		variable_ = self.variables[0]
-		varType = None
-		
-		varSplited = variable_.split(":")
-		if( len(varSplited) >= 2 ):
-			variable_, varType = varSplited
-		else:
-			variable_ = varSplited[0]
+    def openFile(self, filePath):
+        text2save = ""
+        insertingVariable=True
+        insertingController=False
+        insertingObservable=False
+        insertingFunction=False
+        insertingDispose=False
+        variable_ = self.variables[0]
+        varType = None
+        
+        varSplited = variable_.split(":")
+        if( len(varSplited) >= 2 ):
+            variable_, varType = varSplited
+        else:
+            variable_ = varSplited[0]
 
-		try:
-			with open(filePath) as f:
-				for line in f.readlines():
-					if("BehaviorSubject" in line or "override" in line):
-						if(insertingVariable):
-							text2save += "  "
-							text2save += "var" if (varType == None) else varType
-							text2save += " _%s; \n" % (variable_)
-							insertingVariable = False
-							insertingController = True
-					if(insertingController):
-						text2save += "  BehaviorSubject"
-						text2save += "" if (varType == None) else ("<%s>") % varType
-						text2save += " %sController = new BehaviorSubject.seeded(null);\n" % (variable_)
-						insertingController = False
-						insertingObservable = True
-					if(insertingObservable):
-						if(("BehaviorSubject" not in line) and ("Observable" not in line)):
-							text2save += "  Observable"
-							text2save += "" if (varType == None) else ("<%s>") % varType
-							text2save += " get %sObservable => %sController.stream;\n" % (variable_,variable_)
-							insertingObservable = False
-							insertingFunction = True
-					if(insertingFunction):
-						if(("BehaviorSubject" not in line) and ("Observable" not in line)):
-							type_var = "" if (varType == None) else ("%s ") % varType
-							text2save += "  void change%s(%s%s){\n" % (variable_.capitalize(),type_var,variable_)
-							text2save += "    _%s = %s;\n" 		  % (variable_,variable_)
-							text2save += "	  %sController.sink.add(_%s);\n" % (variable_,variable_)
-							text2save += "  }\n"
-							insertingFunction = False
-							insertingDispose = True
-					if("super.dispose()" in line):
-						text2save += "    %sController.close();\n" % (variable_)
-						insertingDispose = False
-					text2save += line
-			return text2save
+        try:
+            with open(filePath) as f:
+                for line in f.readlines():
+                    if("BehaviorSubject" in line or "override" in line):
+                        if(insertingVariable):
+                            text2save += "  "
+                            text2save += "var" if (varType == None) else varType
+                            text2save += " _%s; \n" % (variable_)
+                            insertingVariable = False
+                            insertingController = True
+                        if(insertingController):
+                            text2save += "  BehaviorSubject"
+                            text2save += "" if (varType == None) else ("<%s>") % varType
+                            text2save += " %sController = new BehaviorSubject.seeded(null);\n" % (variable_)
+                            insertingController = False
+                            insertingObservable = True
+                            if(insertingObservable):
+                                if(("BehaviorSubject" not in line) and ("Observable" not in line)):
+                                    text2save += "  Observable"
+                                    text2save += "" if (varType == None) else ("<%s>") % varType
+                                    text2save += " get %sObservable => %sController.stream;\n" % (variable_,variable_)
+                                    insertingObservable = False
+                                    insertingFunction = True
+                            if(insertingFunction):
+                                if(("BehaviorSubject" not in line) and ("Observable" not in line)):
+                                    type_var = "" if (varType == None) else ("%s ") % varType
+                                    text2save += "  void change%s(%s%s){\n" % (variable_.capitalize(),type_var,variable_)
+                                    text2save += "    _%s = %s;\n" 		  % (variable_,variable_)
+                                    text2save += "	  %sController.sink.add(_%s);\n" % (variable_,variable_)
+                                    text2save += "  }\n"
+                                    insertingFunction = False
+                                    insertingDispose = True
+                            if("super.dispose()" in line):
+                                text2save += "    %sController.close();\n" % (variable_)
+                                insertingDispose = False
+                            text2save += line
+            return text2save
 
-		except IOError:
-			print("File not accessible")
+        except IOError:
+            print("File not accessible")
 
 
 def main():
-	args = sys.argv[1:]
-	comand,variables,pathOrFile = CheckOptions(args).getComand()
-	Worker(comand,variables,pathOrFile).doComand()
+    args = sys.argv[1:]
+    comand,variables,pathOrFile = CheckOptions(args).getComand()
+    Worker(comand,variables,pathOrFile).doComand()
 
 if __name__ == "__main__":
-	main()
+    main()
 
