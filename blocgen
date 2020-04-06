@@ -211,8 +211,9 @@ class Worker():
                         if(("BehaviorSubject" not in line) and ("Observable" not in line)):
                             for variable_ in self.variables:
                                 variable_, varType  = self.getVariable(variable_)
+                                variableCaptalized = variable_[0].upper() + variable_[1:]
                                 type_var = "" if (varType == None) else ("%s ") % varType
-                                text2save += "  void change%s(%s%s){\n" % (variable_.capitalize(),type_var,variable_)
+                                text2save += "  void change%s(%s%s){\n" % (variableCaptalized,type_var,variable_)
                                 text2save += "    _%s = %s;\n" 		  % (variable_,variable_)
                                 text2save += "	  %sController.sink.add(_%s);\n" % (variable_,variable_)
                                 text2save += "  }\n"
