@@ -159,6 +159,16 @@ class Worker():
             print("file not found in the path it received")
 
 
+    def getVariable(self, variable):
+        varType = None
+        varSplited = variable.split(":")
+        if( len(varSplited) >= 2 ):
+            variable_, varType = varSplited
+        else:
+            variable_ = varSplited[0]
+
+        return variable_,varType
+
 
     def openFile(self, filePath):
         text2save = ""
@@ -167,51 +177,53 @@ class Worker():
         insertingObservable=False
         insertingFunction=False
         insertingDispose=False
-        variable_ = self.variables[0]
-        varType = None
-        
-        varSplited = variable_.split(":")
-        if( len(varSplited) >= 2 ):
-            variable_, varType = varSplited
-        else:
-            variable_ = varSplited[0]
 
         try:
             with open(filePath) as f:
                 for line in f.readlines():
                     if("BehaviorSubject" in line or "override" in line):
                         if(insertingVariable):
-                            text2save += "  "
-                            text2save += "var" if (varType == None) else varType
-                            text2save += " _%s; \n" % (variable_)
+                            for variable_ in self.variables:
+                                variable_, varType  = self.getVariable(variable_)
+                                text2save += "  "
+                                text2save += "var" if (varType == None) else varType
+                                text2save += " _%s; \n" % (variable_)
                             insertingVariable = False
                             insertingController = True
-                        if(insertingController):
+                    if(insertingController):
+                        for variable_ in self.variables:
+                            variable_, varType  = self.getVariable(variable_)
                             text2save += "  BehaviorSubject"
                             text2save += "" if (varType == None) else ("<%s>") % varType
                             text2save += " %sController = new BehaviorSubject.seeded(null);\n" % (variable_)
-                            insertingController = False
-                            insertingObservable = True
-                            if(insertingObservable):
-                                if(("BehaviorSubject" not in line) and ("Observable" not in line)):
-                                    text2save += "  Observable"
-                                    text2save += "" if (varType == None) else ("<%s>") % varType
-                                    text2save += " get %sObservable => %sController.stream;\n" % (variable_,variable_)
-                                    insertingObservable = False
-                                    insertingFunction = True
-                            if(insertingFunction):
-                                if(("BehaviorSubject" not in line) and ("Observable" not in line)):
-                                    type_var = "" if (varType == None) else ("%s ") % varType
-                                    text2save += "  void change%s(%s%s){\n" % (variable_.capitalize(),type_var,variable_)
-                                    text2save += "    _%s = %s;\n" 		  % (variable_,variable_)
-                                    text2save += "	  %sController.sink.add(_%s);\n" % (variable_,variable_)
-                                    text2save += "  }\n"
-                                    insertingFunction = False
-                                    insertingDispose = True
-                            if("super.dispose()" in line):
-                                text2save += "    %sController.close();\n" % (variable_)
-                                insertingDispose = False
-                            text2save += line
+                        insertingController = False
+                        insertingObservable = True
+                    if(insertingObservable):
+                        for variable_ in self.variables:
+                            if(("BehaviorSubject" not in line) and ("Observable" not in line)):
+                                variable_, varType  = self.getVariable(variable_)
+                                text2save += "  Observable"
+                                text2save += "" if (varType == None) else ("<%s>") % varType
+                                text2save += " get %sObservable => %sController.stream;\n" % (variable_,variable_)
+                        insertingObservable = False
+                        insertingFunction = True
+                    if(insertingFunction):
+                        if(("BehaviorSubject" not in line) and ("Observable" not in line)):
+                            for variable_ in self.variables:
+                                variable_, varType  = self.getVariable(variable_)
+                                type_var = "" if (varType == None) else ("%s ") % varType
+                                text2save += "  void change%s(%s%s){\n" % (variable_.capitalize(),type_var,variable_)
+                                text2save += "    _%s = %s;\n" 		  % (variable_,variable_)
+                                text2save += "	  %sController.sink.add(_%s);\n" % (variable_,variable_)
+                                text2save += "  }\n"
+                            insertingFunction = False
+                            insertingDispose = True
+                    if("super.dispose()" in line):
+                        for variable_ in self.variables:
+                            variable_, varType  = self.getVariable(variable_)
+                            text2save += "    %sController.close();\n" % (variable_)
+                        insertingDispose = False
+                    text2save += line
             return text2save
 
         except IOError:
